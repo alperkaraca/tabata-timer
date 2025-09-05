@@ -199,6 +199,8 @@ const els = {
   setsLabel: document.getElementById('sets-label') || document.querySelector('label[for="sets-input"]'),
   langSelect: document.getElementById('lang-select'),
   langLabel: document.getElementById('lang-label'),
+  heroTitle: document.getElementById('hero-title'),
+  heroLead: document.getElementById('hero-lead'),
   body: document.body,
 };
 
@@ -210,6 +212,8 @@ const i18n = {
     pause: 'Pause',
     reset: 'Reset',
     setsLabel: 'Sets:',
+    heroTitle: 'Tabata Timer — HIIT Interval Timer',
+    heroLead: 'Free, PWA-ready Tabata timer with circular progress, audio/vibration cues, bilingual UI (EN/TR), and offline support.',
     setInfoIdle: (total) => `Set 0 / ${total}`,
     setInfo: (current, total) => `Set ${current} / ${total}`,
     finishedInfo: (total) => `Congrats! ${total} ${total === 1 ? 'set' : 'sets'} completed.`,
@@ -222,6 +226,8 @@ const i18n = {
     pause: 'Duraklat',
     reset: 'Sıfırla',
     setsLabel: 'Set Sayısı:',
+    heroTitle: 'Tabata Zamanlayıcısı — HIIT Interval Zamanlayıcı',
+    heroLead: 'Dairesel ilerleme, ses/titreşim uyarıları, iki dilli arayüz (TR/EN) ve çevrimdışı destek sunan ücretsiz, PWA tabanlı Tabata zamanlayıcı.',
     setInfoIdle: (total) => `Set 0 / ${total}`,
     setInfo: (current, total) => `Set ${current} / ${total}`,
     finishedInfo: (total) => `Tebrikler! ${total} set tamamlandı.`,
@@ -241,6 +247,8 @@ function setLanguage(lang, state) {
   // Static texts
   if (els.setsLabel) els.setsLabel.textContent = i18n[currentLang].setsLabel;
   if (els.langLabel) els.langLabel.textContent = i18n[currentLang].langLabel;
+  if (els.heroTitle) els.heroTitle.textContent = i18n[currentLang].heroTitle;
+  if (els.heroLead) els.heroLead.textContent = i18n[currentLang].heroLead;
   if (els.pauseBtn) els.pauseBtn.textContent = i18n[currentLang].pause;
   if (els.resetBtn) els.resetBtn.textContent = i18n[currentLang].reset;
   // Start button depends on state
