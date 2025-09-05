@@ -87,6 +87,8 @@ function run() {
   ensureDir(docsDir);
   ensureDir(path.join(distDir, 'icons'));
   ensureDir(path.join(docsDir, 'icons'));
+  ensureDir(path.join(distDir, 'seo'));
+  ensureDir(path.join(docsDir, 'seo'));
 
   // JS
   const { bundled, minified } = bundleJs();
@@ -122,6 +124,25 @@ function run() {
       fs.copyFileSync(src, path.join(docsDir, 'icons', base));
     }
   });
+
+  // Copy SEO structured data
+  const sd = path.join(root, 'seo', 'structured-data.json');
+  if (fs.existsSync(sd)) {
+    fs.copyFileSync(sd, path.join(distDir, 'seo', 'structured-data.json'));
+    fs.copyFileSync(sd, path.join(docsDir, 'seo', 'structured-data.json'));
+  }
+
+  // robots.txt & sitemap.xml
+  const baseUrl = 'https://alperkaraca.github.io/tabata-timer/';
+  const robots = `User-agent: *\nAllow: /\nSitemap: ${baseUrl}sitemap.xml\n`;
+  write(path.join(distDir, 'robots.txt'), robots);
+  write(path.join(docsDir, 'robots.txt'), robots);
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
+    `<url><loc>${baseUrl}</loc></url>` +
+    `</urlset>`;
+  write(path.join(distDir, 'sitemap.xml'), sitemap);
+  write(path.join(docsDir, 'sitemap.xml'), sitemap);
 
   // Copy dist to docs/ for GitHub Pages, and rename HTML to index.html
   const filesToCopy = ['app.min.css', 'main.bundle.min.js', 'manifest.webmanifest', 'sw.js'];

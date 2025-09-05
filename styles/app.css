@@ -33,6 +33,19 @@ body {
   text-align: center;
 }
 
+.hero-h1 {
+  margin: 6px 0 2px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.lead {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  color: rgba(61,64,91,0.85);
+}
+
 /* Brand header with shimmer highlight */
 .brand {
   position: relative;

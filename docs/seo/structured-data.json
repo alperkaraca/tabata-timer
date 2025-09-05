@@ -1,0 +1,15 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Tabata Timer",
+  "alternateName": "HIIT Interval Timer",
+  "applicationCategory": "FitnessApplication",
+  "operatingSystem": "Web",
+  "url": "https://alperkaraca.github.io/tabata-timer/",
+  "description": "Modern, modular, PWA-ready Tabata timer with circular progress, audio cues, vibration, bilingual UI (EN/TR), and offline support.",
+  "creator": {
+    "@type": "Person",
+    "name": "ALPER K."
+  }
+}
+

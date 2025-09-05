@@ -17,12 +17,14 @@ Modern, modular, PWA-ready Tabata timer with circular progress, audio cues, vibr
 - Accessibility: `role="timer"`, aria-live regions
 - Security: no inline code/styles, strict CSP
 - PWA: Service Worker for offline and fast reloads
+ - SEO-friendly: meta description, canonical URL, Open Graph/Twitter cards, JSON‑LD structured data, robots.txt, sitemap.xml, hreflang links
 
 ## Quick Start (EN)
 - Development (modular sources): open `tabata-timer.html` directly.
 - Production (minified build):
   - Run `node scripts/build.js`
   - Open `dist/tabata-timer.html`
+ - Language via URL: `?lang=en` or `?lang=tr`
 
 Note: PWA (Service Worker) works only over http(s). For local testing:
 
@@ -38,6 +40,13 @@ Build creates `docs/` automatically for Pages.
 
 Manifest `start_url` is `./`, so Pages uses `docs/index.html` as the app entry.
 Icons are included (SVG, any/maskable) for installable PWA experience.
+
+### SEO & Social (EN)
+- Canonical URL, robots.txt and sitemap.xml are generated during build (dist/ and docs/)
+- Open Graph/Twitter card use `social/og-image.svg` (you can replace with PNG/JPG later); width=1200, height=630 are declared
+- JSON‑LD (SoftwareApplication) is now inlined inside HTML for maximum compatibility
+- Hreflang links include `en`, `tr` and `x-default`
+ - Favicon and Apple touch icon are linked
 
 ## Project Structure (EN)
 ```
@@ -106,6 +115,7 @@ Minimal, modern ve PWA özellikleriyle zenginleştirilmiş bir Tabata zamanlayı
 - Erişilebilirlik: `role="timer"`, canlı bölge (aria-live)
 - Güvenlik: Inline kod/stil yok, sıkı Content Security Policy
 - PWA: Service Worker ile offline çalışma ve hızlı tekrar açılış
+ - SEO uyumlu: meta description, canonical URL, Open Graph/Twitter kartları, JSON‑LD, robots.txt, sitemap.xml, hreflang linkleri
 
 ## Hızlı Başlangıç
 - Geliştirme (modüler kaynaklarla):
@@ -113,6 +123,7 @@ Minimal, modern ve PWA özellikleriyle zenginleştirilmiş bir Tabata zamanlayı
 - Üretim (minify edilmiş derleme):
   - `node scripts/build.js` çalıştır.
   - `dist/tabata-timer.html` dosyasını aç.
+ - URL ile dil seçimi: `?lang=en` veya `?lang=tr`
 
 Not: PWA (Service Worker) yalnızca `http(s)` üzerinden aktif olur. Test için basit bir yerel sunucu kullan:
 
@@ -129,6 +140,13 @@ Build sonrası `docs/` klasörü otomatik üretilir ve yayın için hazırdır.
 
 Manifest `start_url` değeri `./` olduğundan Pages altında kök dizindeki `index.html` (docs/index.html) baz alınır.
 PWA ikonları (SVG; any/maskable) eklidir, kurulabilir uygulama deneyimi sunar.
+
+### SEO ve Sosyal (TR)
+- Build sırasında canonical URL, robots.txt ve sitemap.xml oluşturulur (dist/ ve docs/)
+- Open Graph/Twitter kartı için `social/og-image.svg` kullanılır (ileride PNG/JPG ile değiştirilebilir); width=1200, height=630 belirtilir
+- JSON‑LD (SoftwareApplication) en yüksek uyumluluk için HTML içine inline eklendi
+- Hreflang linkleri `en`, `tr` ve `x-default` içerir
+ - Favicon ve Apple touch icon bağlandı
 
 ## Proje Yapısı
 ```

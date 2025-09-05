@@ -12,8 +12,11 @@ const savedSets = parseInt(localStorage.getItem('tabata_sets'), 10);
 if (!Number.isNaN(savedSets) && savedSets > 0) {
   els.setsInput.value = savedSets;
 }
+const params = new URLSearchParams(location.search);
+const urlLang = params.get('lang');
 const savedLang = localStorage.getItem('tabata_lang');
-setLanguage(savedLang || 'tr');
+setLanguage((urlLang || savedLang || 'tr'));
+if (urlLang) localStorage.setItem('tabata_lang', urlLang);
 
 let totalSets = parseInt(els.setsInput.value, 10) || 8;
 
