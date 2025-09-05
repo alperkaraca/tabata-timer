@@ -8,6 +8,7 @@ Modern, modular, PWA-ready Tabata timer with circular progress, audio cues, vibr
 
 ## Features (EN)
 - Circular progress ring and clear phase labels (Prep/Work/Rest/Done)
+- Bilingual UI (English/Türkçe) with instant switching; preference is saved
 - Audio cues (short/long beeps) + optional finish sound
 - Vibration feedback (on supported devices)
 - Remembers set count via `localStorage`
@@ -93,6 +94,7 @@ Minimal, modern ve PWA özellikleriyle zenginleştirilmiş bir Tabata zamanlayı
 
 ## Özellikler
 - Dairesel ilerleme çubuğu ve net durum etiketleri (Hazırlan/Çalış/Mola/Bitti)
+- Çift dilli arayüz (Türkçe/İngilizce); anında geçiş ve tercih kaydı
 - Ses uyarıları (kısa/uzun bip) + bitişte özel ses için opsiyon
 - Titreşim (destekleyen cihazlarda)
 - Set sayısını `localStorage` ile hatırlar

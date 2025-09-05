@@ -204,6 +204,29 @@ body {
     inset -2px -2px 4px var(--shadow-light);
 }
 
+/* Language select styled similar to input */
+#lang-select {
+  width: 120px;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  text-align: left;
+  font-size: 1rem;
+  font-family: var(--font-family);
+  background: var(--bg-color);
+  box-shadow:
+    inset 4px 4px 8px var(--shadow-dark),
+    inset -4px -4px 8px var(--shadow-light);
+  color: var(--text-color);
+}
+
+#lang-select:focus {
+  outline: none;
+  box-shadow:
+    inset 2px 2px 4px var(--shadow-dark),
+    inset -2px -2px 4px var(--shadow-light);
+}
+
 /* Phase-driven colors */
 .phase-prep .progress-bar { stroke: var(--rest-color); }
 .phase-work .progress-bar { stroke: var(--primary-color); }

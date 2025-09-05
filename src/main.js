@@ -1,22 +1,26 @@
 import { Timer, Phase } from './timer.js';
 import { setupAudio, playShortBeep, playLongBeep, playFinish } from './audio.js';
-import { els, initUI, updateTimeLeft, updateSetInfo, updateProgress, setPhase, setStartButtonLabel, vibrate } from './ui.js';
+import { els, initUI, updateTimeLeft, updateSetInfo, updateProgress, setPhase, setStartButtonLabel, vibrate, setLanguage, getLanguage, finishedInfo } from './ui.js';
 
 // Config
 const PREP_TIME = 5;
 const WORK_TIME = 20;
 const REST_TIME = 10;
 
-// Load saved sets
+// Load saved sets and language
 const savedSets = parseInt(localStorage.getItem('tabata_sets'), 10);
 if (!Number.isNaN(savedSets) && savedSets > 0) {
   els.setsInput.value = savedSets;
 }
+const savedLang = localStorage.getItem('tabata_lang');
+setLanguage(savedLang || 'tr');
 
 let totalSets = parseInt(els.setsInput.value, 10) || 8;
 
 // Init UI
 initUI(totalSets, WORK_TIME);
+// Ensure static texts reflect language
+setLanguage(getLanguage(), { phase: 'idle', timeLeft: WORK_TIME, currentSet: 0, totalSets, isPaused: true });
 
 const timer = new Timer({
   prep: PREP_TIME,
@@ -54,7 +58,7 @@ const timer = new Timer({
   onFinish: (state) => {
     playFinish();
     els.timeLeft.textContent = '🎉';
-    els.setInfo.textContent = `Tebrikler! ${state.totalSets} set tamamlandı.`;
+    els.setInfo.textContent = finishedInfo(state.totalSets);
     updateProgress(0, 1);
     vibrate(200);
   }
@@ -65,19 +69,19 @@ els.startBtn.addEventListener('click', async () => {
   await setupAudio();
   const wasIdle = timer.state.phase === Phase.Idle;
   timer.start();
-  if (!wasIdle) setStartButtonLabel('Devam');
+  if (!wasIdle) setStartButtonLabel('resume');
 });
 
 els.pauseBtn.addEventListener('click', () => {
   timer.pause();
-  setStartButtonLabel('Devam');
+  setStartButtonLabel('resume');
 });
 
 els.resetBtn.addEventListener('click', () => {
   totalSets = parseInt(els.setsInput.value, 10) || 8;
   timer.reset(totalSets);
   setPhase(Phase.Idle);
-  setStartButtonLabel('Başlat');
+  setStartButtonLabel('start');
   initUI(totalSets, WORK_TIME);
 });
 
@@ -87,7 +91,7 @@ els.setsInput.addEventListener('change', () => {
   totalSets = v;
   timer.reset(totalSets);
   setPhase(Phase.Idle);
-  setStartButtonLabel('Başlat');
+  setStartButtonLabel('start');
   initUI(totalSets, WORK_TIME);
 });
 
@@ -108,4 +112,15 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
   // If this file is opened from dist/, register sw at ./sw.js
   const swPath = (location.pathname.includes('/dist/')) ? './sw.js' : './dist/sw.js';
   navigator.serviceWorker.register(swPath).catch(() => {});
+}
+
+// Language selection
+if (els.langSelect) {
+  // Initialize control value
+  els.langSelect.value = getLanguage();
+  els.langSelect.addEventListener('change', () => {
+    const lang = els.langSelect.value;
+    localStorage.setItem('tabata_lang', lang);
+    setLanguage(lang, timer.state);
+  });
 }
