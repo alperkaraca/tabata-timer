@@ -1,5 +1,94 @@
 # Tabata Timer by ALPER K.
 
+[English](#english) | [Türkçe](#turkce)
+
+<a id="english"></a>
+
+Modern, modular, PWA-ready Tabata timer with circular progress, audio cues, vibration, a11y, strict CSP, and offline support. GitHub Pages–ready out of the box.
+
+## Features (EN)
+- Circular progress ring and clear phase labels (Prep/Work/Rest/Done)
+- Audio cues (short/long beeps) + optional finish sound
+- Vibration feedback (on supported devices)
+- Remembers set count via `localStorage`
+- Keyboard shortcut: Space to Start/Pause
+- Accessibility: `role="timer"`, aria-live regions
+- Security: no inline code/styles, strict CSP
+- PWA: Service Worker for offline and fast reloads
+
+## Quick Start (EN)
+- Development (modular sources): open `tabata-timer.html` directly.
+- Production (minified build):
+  - Run `node scripts/build.js`
+  - Open `dist/tabata-timer.html`
+
+Note: PWA (Service Worker) works only over http(s). For local testing:
+
+```bash
+python3 -m http.server 8000
+open http://localhost:8000/dist/tabata-timer.html
+```
+
+## GitHub Pages (EN)
+Build creates `docs/` automatically for Pages.
+- Settings → Pages → Deploy from a branch → Branch: `main`, Folder: `/docs`
+- Then open `https://<user>.github.io/<repo>/`
+
+Manifest `start_url` is `./`, so Pages uses `docs/index.html` as the app entry.
+
+## Project Structure (EN)
+```
+.
+├─ tabata-timer.html        # App shell using modular sources
+├─ styles/
+│  └─ app.css               # Base styles + phase classes
+├─ src/
+│  ├─ main.js               # Entry/wiring
+│  ├─ timer.js              # State machine
+│  ├─ ui.js                 # DOM updates & phases
+│  └─ audio.js              # Web Audio + beeps/finish
+├─ scripts/
+│  └─ build.js              # Bundle+minify to dist/, mirror to docs/
+├─ dist/                    # Production build (auto)
+├─ docs/                    # GitHub Pages build (auto)
+├─ sw.js                    # Service Worker (source)
+└─ manifest.webmanifest     # PWA manifest
+```
+
+## Build & Run (EN)
+Requires Node.js for building only. App has no runtime deps.
+- `node scripts/build.js` → updates `dist/` and `docs/`
+
+## Audio (EN)
+- Default: Web Audio short/long beeps
+- Optional finish sound: add `assets/audio/finish.mp3`
+  - Dev: `assets/audio/finish.mp3`
+  - Pages/Prod: `docs/assets/audio/finish.mp3`
+- Browsers require user interaction to start audio; first Start click enables it.
+
+## PWA (EN)
+- `sw.js`: cache-first for same-origin; serves last cached offline
+- `manifest.webmanifest`: name, theme color, standalone
+- Works only over http(s), not `file://`
+
+## A11y & UX (EN)
+- `role="timer"`, aria-live updates
+- Space toggles start/pause
+- Vibration via `navigator.vibrate`
+
+## Security (EN)
+- Strict CSP: `script-src 'self'`, `style-src 'self'`
+- No external fonts/audio by default (can be added with CSP updates)
+
+## Customize (EN)
+- Colors: edit CSS vars in `styles/app.css`
+- Phase durations: change `PREP_TIME`, `WORK_TIME`, `REST_TIME` in `src/main.js`
+- Branding: tweak `.brand` in `tabata-timer.html`; shimmer in `styles/app.css`
+
+---
+
+<a id="turkce"></a>
+
 Minimal, modern ve PWA özellikleriyle zenginleştirilmiş bir Tabata zamanlayıcısı. Modüler mimari, sıkı CSP, erişilebilirlik ve offline desteği ile tek tıkla kullanıma hazır.
 
 ## Özellikler
@@ -92,4 +181,3 @@ Manifest `start_url` değeri `./` olduğundan Pages altında kök dizindeki `ind
 
 ---
 Her türlü geliştirme talebin (tema/dark mode, süre ayar paneli, drift düzeltme, ikonlar) için PR/issue açabilirsin.
-
