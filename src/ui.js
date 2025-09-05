@@ -50,6 +50,8 @@ export function t() { return i18n[currentLang]; }
 export function setLanguage(lang, state) {
   currentLang = (lang && i18n[lang]) ? lang : 'tr';
   if (els.langSelect) els.langSelect.value = currentLang;
+  // Update html lang attribute
+  document.documentElement.setAttribute('lang', currentLang);
   // Static texts
   if (els.setsLabel) els.setsLabel.textContent = i18n[currentLang].setsLabel;
   if (els.langLabel) els.langLabel.textContent = i18n[currentLang].langLabel;

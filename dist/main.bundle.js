@@ -14,7 +14,9 @@ class Timer {
     this.onPhaseChange = onPhaseChange || (() => {});
     this.onFinish = onFinish || (() => {});
 
+    this._heartbeatMs = 250; // drift-tolerant kontrol frekansı
     this.intervalId = null;
+    this.phaseEndAt = null; // ms cinsinden bitiş zamanı
     this.reset(totalSets);
   }
 
@@ -32,18 +34,29 @@ class Timer {
     if (!this.isPaused) return;
     this.isPaused = false;
 
+    const now = Date.now();
     if (this.phase === Phase.Idle) {
       this.phase = Phase.Prep;
       this.timeLeft = this.config.prep;
+      this.phaseEndAt = now + this.timeLeft * 1000;
       this._emitPhase();
+      this._emitTick();
+    } else {
+      // Devam: mevcut kalan süreye göre yeni bitiş zamanını ayarla
+      this.phaseEndAt = now + Math.max(0, this.timeLeft) * 1000;
     }
 
     if (!this.intervalId) {
-      this.intervalId = setInterval(() => this._tick(), 1000);
+      this.intervalId = setInterval(() => this._heartbeat(), this._heartbeatMs);
     }
   }
 
   pause() {
+    // Kalan süreyi doğru hesapla, zamanlayıcıyı durdur
+    const now = Date.now();
+    if (this.phaseEndAt) {
+      this.timeLeft = Math.max(0, Math.ceil((this.phaseEndAt - now) / 1000));
+    }
     this.isPaused = true;
     if (this.intervalId) clearInterval(this.intervalId);
     this.intervalId = null;
@@ -58,19 +71,28 @@ class Timer {
     this.currentSet = 0;
     this.timeLeft = this.config.work;
     this.isPaused = true;
+    this.phaseEndAt = null;
     this._emitTick();
   }
 
-  _tick() {
-    this.timeLeft -= 1;
-    this._emitTick();
+  _heartbeat() {
+    if (this.isPaused) return;
+    if (![Phase.Prep, Phase.Work, Phase.Rest].includes(this.phase)) return;
+    const now = Date.now();
+    if (!this.phaseEndAt) this.phaseEndAt = now + Math.max(0, this.timeLeft) * 1000;
 
-    if (this.timeLeft < 0) {
+    const remaining = Math.ceil((this.phaseEndAt - now) / 1000);
+    if (remaining !== this.timeLeft) {
+      this.timeLeft = remaining;
+      this._emitTick();
+    }
+
+    if (remaining <= 0) {
+      // Faz geçişi
       if (this.phase === Phase.Prep) {
         this.phase = Phase.Work;
         this.timeLeft = this.config.work;
         this.currentSet = 1;
-        this._emitPhase();
       } else if (this.phase === Phase.Work) {
         if (this.currentSet >= this.totalSets) {
           this._finish();
@@ -78,13 +100,13 @@ class Timer {
         }
         this.phase = Phase.Rest;
         this.timeLeft = this.config.rest;
-        this._emitPhase();
       } else if (this.phase === Phase.Rest) {
         this.phase = Phase.Work;
         this.currentSet += 1;
         this.timeLeft = this.config.work;
-        this._emitPhase();
       }
+      this.phaseEndAt = Date.now() + this.timeLeft * 1000;
+      this._emitPhase();
       this._emitTick();
     }
   }
@@ -106,7 +128,6 @@ class Timer {
     this.onPhaseChange(this.state);
   }
 }
-
 
 
 let audioContext;
@@ -215,6 +236,8 @@ function t() { return i18n[currentLang]; }
 function setLanguage(lang, state) {
   currentLang = (lang && i18n[lang]) ? lang : 'tr';
   if (els.langSelect) els.langSelect.value = currentLang;
+  // Update html lang attribute
+  document.documentElement.setAttribute('lang', currentLang);
   // Static texts
   if (els.setsLabel) els.setsLabel.textContent = i18n[currentLang].setsLabel;
   if (els.langLabel) els.langLabel.textContent = i18n[currentLang].langLabel;

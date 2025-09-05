@@ -85,6 +85,8 @@ function run() {
   ensureDir(path.join(distDir, 'assets'));
   ensureDir(path.join(distDir, 'assets', 'audio'));
   ensureDir(docsDir);
+  ensureDir(path.join(distDir, 'icons'));
+  ensureDir(path.join(docsDir, 'icons'));
 
   // JS
   const { bundled, minified } = bundleJs();
@@ -109,6 +111,17 @@ function run() {
   if (fs.existsSync(swSrc)) {
     fs.copyFileSync(swSrc, path.join(distDir, 'sw.js'));
   }
+
+  // Copy icons
+  const icons = ['icons/tabata-icon.svg', 'icons/maskable.svg'];
+  icons.forEach(rel => {
+    const src = path.join(root, rel);
+    if (fs.existsSync(src)) {
+      const base = path.basename(src);
+      fs.copyFileSync(src, path.join(distDir, 'icons', base));
+      fs.copyFileSync(src, path.join(docsDir, 'icons', base));
+    }
+  });
 
   // Copy dist to docs/ for GitHub Pages, and rename HTML to index.html
   const filesToCopy = ['app.min.css', 'main.bundle.min.js', 'manifest.webmanifest', 'sw.js'];

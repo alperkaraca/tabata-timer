@@ -8,6 +8,7 @@ Modern, modular, PWA-ready Tabata timer with circular progress, audio cues, vibr
 
 ## Features (EN)
 - Circular progress ring and clear phase labels (Prep/Work/Rest/Done)
+- Drift-corrected timing (time-based heartbeat; resilient to tab throttling)
 - Bilingual UI (English/Türkçe) with instant switching; preference is saved
 - Audio cues (short/long beeps) + optional finish sound
 - Vibration feedback (on supported devices)
@@ -36,6 +37,7 @@ Build creates `docs/` automatically for Pages.
 - Then open `https://<user>.github.io/<repo>/`
 
 Manifest `start_url` is `./`, so Pages uses `docs/index.html` as the app entry.
+Icons are included (SVG, any/maskable) for installable PWA experience.
 
 ## Project Structure (EN)
 ```
@@ -76,6 +78,7 @@ Requires Node.js for building only. App has no runtime deps.
 - `role="timer"`, aria-live updates
 - Space toggles start/pause
 - Vibration via `navigator.vibrate`
+ - `html[lang]` updates when switching language
 
 ## Security (EN)
 - Strict CSP: `script-src 'self'`, `style-src 'self'`
@@ -94,6 +97,7 @@ Minimal, modern ve PWA özellikleriyle zenginleştirilmiş bir Tabata zamanlayı
 
 ## Özellikler
 - Dairesel ilerleme çubuğu ve net durum etiketleri (Hazırlan/Çalış/Mola/Bitti)
+- Sapma düzeltmeli zamanlama (gerçek-zaman kalp atımı; sekme kısıtlamalarına dayanıklı)
 - Çift dilli arayüz (Türkçe/İngilizce); anında geçiş ve tercih kaydı
 - Ses uyarıları (kısa/uzun bip) + bitişte özel ses için opsiyon
 - Titreşim (destekleyen cihazlarda)
@@ -124,6 +128,7 @@ Build sonrası `docs/` klasörü otomatik üretilir ve yayın için hazırdır.
 - Yayınlandıktan sonra uygulama `https://<kullanıcı-adı>.github.io/<repo-adı>/` adresinden açılır.
 
 Manifest `start_url` değeri `./` olduğundan Pages altında kök dizindeki `index.html` (docs/index.html) baz alınır.
+PWA ikonları (SVG; any/maskable) eklidir, kurulabilir uygulama deneyimi sunar.
 
 ## Proje Yapısı
 ```
@@ -166,6 +171,7 @@ Manifest `start_url` değeri `./` olduğundan Pages altında kök dizindeki `ind
 - `role="timer"`, `aria-live` bölgeleri
 - Boşluk tuşu ile başlat/duraklat
 - Titreşim desteği (mobil cihazlarda `navigator.vibrate`)
+ - Dil değiştirdiğinde `html[lang]` güncellenir
 
 ## Güvenlik
 - Sıkı CSP: `script-src 'self'`, `style-src 'self'` (inline script/stil yok)
