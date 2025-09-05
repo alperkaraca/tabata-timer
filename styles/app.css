@@ -49,12 +49,12 @@ body {
   font-style: italic;
   font-weight: 300;
   opacity: 0.9;
-  margin-right: 0.25em;
+  margin-right: 0.12em;
 }
 
 .brand .brand-name {
   color: var(--brand-accent);
-  margin-left: 0.25em;
+  margin-left: 0.12em;
 }
 
 .brand::after {
