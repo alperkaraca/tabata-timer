@@ -488,8 +488,8 @@ window.addEventListener('keydown', (e) => {
 
 // Register Service Worker when served over http(s)
 if ('serviceWorker' in navigator && window.isSecureContext) {
-  // If this file is opened from dist/, register sw at ./sw.js
-  const swPath = (location.pathname.includes('/dist/')) ? './sw.js' : './dist/sw.js';
+  // Register sw from current directory to avoid path mismatches on Pages/docs
+  const swPath = './sw.js';
   navigator.serviceWorker.register(swPath).catch(() => {});
 }
 

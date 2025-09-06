@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tabata-timer-v1';
+const CACHE_NAME = 'tabata-timer-v2';
 const CORE_ASSETS = [
   './tabata-timer.html',
   './app.min.css',
@@ -29,4 +29,3 @@ self.addEventListener('fetch', (event) => {
     }).catch(() => caches.match('./tabata-timer.html')))
   );
 });
-
