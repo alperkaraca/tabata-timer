@@ -26,8 +26,10 @@ function write(file, content) { fs.writeFileSync(file, content, 'utf8'); }
 function stripJsImportsExports(code) {
   // Remove import lines
   code = code.replace(/^\s*import\s+[^;]+;\s*$/gm, '');
-  // Remove export keywords
-  code = code.replace(/\bexport\s+(?=(class|function|const|let|var)\b)/g, '');
+  // Remove export keywords (including async functions)
+  code = code.replace(/\bexport\s+(?:async\s+)?(?=(class|function|const|let|var)\b)/g, '');
+  // Remove `export default` (if any)
+  code = code.replace(/^\s*export\s+default\s+/gm, '');
   // Named export at end: export { a, b };
   code = code.replace(/^\s*export\s*\{[^}]*\};?\s*$/gm, '');
   return code;
@@ -70,11 +72,12 @@ function bundleJs() {
 
 function buildHtml(minJsName, minCssName) {
   let html = read(path.join(root, 'tabata-timer.html'));
-  // Replace stylesheet href to dist file
-  html = html.replace(/href="styles\/[^\"]+"/, `href="${minCssName}"`);
-  // Replace module script with bundled file (non-module)
+  const v = Date.now();
+  // Replace stylesheet href to dist file (with cache-busting)
+  html = html.replace(/href="styles\/[^\"]+"/, `href="${minCssName}?v=${v}"`);
+  // Replace module script with bundled file (non-module) + version param
   html = html.replace(/<script\s+type="module"\s+src="src\/main.js"\s*><\/script>/,
-    `<script defer src="${minJsName}"></script>`);
+    `<script defer src="${minJsName}?v=${v}"></script>`);
   // Light HTML minify: collapse whitespace between tags
   html = html.replace(/>\s+</g, '><');
   return html;
