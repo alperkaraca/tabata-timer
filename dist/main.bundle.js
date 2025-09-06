@@ -142,7 +142,7 @@ class Timer {
 let audioContext;
 let finishBuffer;
 
-function setupAudio() {
+async function setupAudio() {
   if (audioContext) return;
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   try {

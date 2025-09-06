@@ -26,9 +26,11 @@ function write(file, content) { fs.writeFileSync(file, content, 'utf8'); }
 function stripJsImportsExports(code) {
   // Remove import lines
   code = code.replace(/^\s*import\s+[^;]+;\s*$/gm, '');
-  // Remove export keywords (including async functions)
-  code = code.replace(/\bexport\s+(?:async\s+)?(?=(class|function|const|let|var)\b)/g, '');
-  // Remove `export default` (if any)
+  // Normalize specific export forms to non-module equivalents
+  code = code.replace(/\bexport\s+async\s+function\b/g, 'async function');
+  code = code.replace(/\bexport\s+function\b/g, 'function');
+  code = code.replace(/\bexport\s+class\b/g, 'class');
+  code = code.replace(/\bexport\s+(const|let|var)\b/g, '$1');
   code = code.replace(/^\s*export\s+default\s+/gm, '');
   // Named export at end: export { a, b };
   code = code.replace(/^\s*export\s*\{[^}]*\};?\s*$/gm, '');
