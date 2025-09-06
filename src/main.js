@@ -1,6 +1,6 @@
 import { Timer, Phase } from './timer.js';
 import { setupAudio, playShortBeep, playLongBeep, playFinish } from './audio.js';
-import { els, initUI, updateTimeLeft, updateSetInfo, updateProgress, setPhase, setStartButtonLabel, vibrate, setLanguage, getLanguage, finishedInfo } from './ui.js';
+import { els, initUI, updateTimeLeft, updateSetInfo, updateProgress, setPhase, setStartButtonLabel, setStartDisabled, vibrate, setLanguage, getLanguage, finishedInfo } from './ui.js';
 
 // Config
 const PREP_TIME = 5;
@@ -30,6 +30,18 @@ const timer = new Timer({
   work: WORK_TIME,
   rest: REST_TIME,
   totalSets,
+  onBeat: (state) => {
+    // Smooth ring sync each heartbeat using msLeft
+    let totalDuration = 1;
+    if (state.phase === Phase.Prep) totalDuration = PREP_TIME;
+    else if (state.phase === Phase.Work) totalDuration = WORK_TIME;
+    else if (state.phase === Phase.Rest) totalDuration = REST_TIME;
+    const ms = state.msLeft ?? (state.timeLeft * 1000);
+    updateProgress(ms, totalDuration);
+    // Numeric shows 1 during the last full second, 0 only at phase end
+    const disp = Math.max(0, Math.ceil(ms / 1000));
+    updateTimeLeft(disp);
+  },
   onTick: (state) => {
     updateTimeLeft(state.timeLeft);
     // duration for current phase
@@ -37,7 +49,8 @@ const timer = new Timer({
     if (state.phase === Phase.Prep) totalDuration = PREP_TIME;
     else if (state.phase === Phase.Work) totalDuration = WORK_TIME;
     else if (state.phase === Phase.Rest) totalDuration = REST_TIME;
-    updateProgress(state.timeLeft, totalDuration);
+    // Redundant safety update (in case beat missed)
+    updateProgress(state.msLeft ?? (state.timeLeft * 1000), totalDuration);
     updateSetInfo(state.currentSet, state.totalSets, state.phase);
 
     // Audio cues
@@ -64,20 +77,33 @@ const timer = new Timer({
     els.setInfo.textContent = finishedInfo(state.totalSets);
     updateProgress(0, 1);
     vibrate(200);
+    setStartButtonLabel('start');
+    setStartDisabled(false);
   }
 });
 
 // Event listeners
 els.startBtn.addEventListener('click', async () => {
   await setupAudio();
+  // If finished, reset then treat as fresh start
+  if (timer.state.phase === Phase.Finished) {
+    const v = parseInt(els.setsInput.value, 10) || 8;
+    timer.reset(v);
+    setPhase(Phase.Idle);
+    setStartButtonLabel('start');
+    initUI(v, WORK_TIME);
+  }
   const wasIdle = timer.state.phase === Phase.Idle;
   timer.start();
   if (!wasIdle) setStartButtonLabel('resume');
+  // Disable start until paused or finished
+  setStartDisabled(true);
 });
 
 els.pauseBtn.addEventListener('click', () => {
   timer.pause();
   setStartButtonLabel('resume');
+  setStartDisabled(false);
 });
 
 els.resetBtn.addEventListener('click', () => {
@@ -85,6 +111,7 @@ els.resetBtn.addEventListener('click', () => {
   timer.reset(totalSets);
   setPhase(Phase.Idle);
   setStartButtonLabel('start');
+  setStartDisabled(false);
   initUI(totalSets, WORK_TIME);
 });
 
@@ -95,6 +122,7 @@ els.setsInput.addEventListener('change', () => {
   timer.reset(totalSets);
   setPhase(Phase.Idle);
   setStartButtonLabel('start');
+  setStartDisabled(false);
   initUI(totalSets, WORK_TIME);
 });
 

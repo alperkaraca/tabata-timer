@@ -7,14 +7,15 @@ export const Phase = Object.freeze({
 });
 
 export class Timer {
-  constructor({ prep = 5, work = 20, rest = 10, totalSets = 8, onTick, onPhaseChange, onFinish }) {
+  constructor({ prep = 5, work = 20, rest = 10, totalSets = 8, onTick, onPhaseChange, onFinish, onBeat }) {
     this.config = { prep, work, rest };
     this.totalSets = totalSets;
     this.onTick = onTick || (() => {});
     this.onPhaseChange = onPhaseChange || (() => {});
     this.onFinish = onFinish || (() => {});
+    this.onBeat = onBeat || (() => {});
 
-    this._heartbeatMs = 250; // drift-tolerant kontrol frekansı
+    this._heartbeatMs = 200; // drift-tolerant kontrol frekansı (daha akıcı 1s geçişi)
     this.intervalId = null;
     this.phaseEndAt = null; // ms cinsinden bitiş zamanı
     this.reset(totalSets);
@@ -24,6 +25,7 @@ export class Timer {
     return {
       phase: this.phase,
       timeLeft: this.timeLeft,
+      msLeft: Math.max(0, this.phaseEndAt ? (this.phaseEndAt - Date.now()) : this.timeLeft * 1000),
       currentSet: this.currentSet,
       totalSets: this.totalSets,
       isPaused: this.isPaused,
@@ -80,6 +82,8 @@ export class Timer {
     if (![Phase.Prep, Phase.Work, Phase.Rest].includes(this.phase)) return;
     const now = Date.now();
     if (!this.phaseEndAt) this.phaseEndAt = now + Math.max(0, this.timeLeft) * 1000;
+    // Emit beat for smooth UI progress every heartbeat
+    this._emitBeat();
 
     const remaining = Math.ceil((this.phaseEndAt - now) / 1000);
     if (remaining !== this.timeLeft) {
@@ -108,6 +112,7 @@ export class Timer {
       this.phaseEndAt = Date.now() + this.timeLeft * 1000;
       this._emitPhase();
       this._emitTick();
+      this._emitBeat();
     }
   }
 
@@ -126,5 +131,9 @@ export class Timer {
 
   _emitPhase() {
     this.onPhaseChange(this.state);
+  }
+
+  _emitBeat() {
+    this.onBeat(this.state);
   }
 }

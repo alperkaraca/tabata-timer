@@ -1,4 +1,4 @@
-export const RADIUS = 140;
+export const RADIUS = 125;
 export const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export const els = {
@@ -25,8 +25,9 @@ const i18n = {
     resume: 'Resume',
     pause: 'Pause',
     reset: 'Reset',
+    restart: 'Restart',
     setsLabel: 'Sets:',
-    heroTitle: 'Tabata Timer — HIIT Interval Timer',
+    heroTitle: 'Tabata Timer by ALPER K.',
     heroLead: 'Free, PWA-ready Tabata timer with circular progress, audio/vibration cues, bilingual UI (EN/TR), and offline support.',
     setInfoIdle: (total) => `Set 0 / ${total}`,
     setInfo: (current, total) => `Set ${current} / ${total}`,
@@ -39,8 +40,9 @@ const i18n = {
     resume: 'Devam',
     pause: 'Duraklat',
     reset: 'Sıfırla',
+    restart: 'Yeniden Başla',
     setsLabel: 'Set Sayısı:',
-    heroTitle: 'Tabata Zamanlayıcısı — HIIT Interval Zamanlayıcı',
+    heroTitle: 'Tabata Timer by ALPER K.',
     heroLead: 'Dairesel ilerleme, ses/titreşim uyarıları, iki dilli arayüz (TR/EN) ve çevrimdışı destek sunan ücretsiz, PWA tabanlı Tabata zamanlayıcı.',
     setInfoIdle: (total) => `Set 0 / ${total}`,
     setInfo: (current, total) => `Set ${current} / ${total}`,
@@ -68,7 +70,7 @@ export function setLanguage(lang, state) {
   // Start button depends on state
   if (state) {
     if (state.isPaused) {
-      if (state.phase === 'idle') setStartButtonLabel('start'); else setStartButtonLabel('resume');
+      if (state.phase === 'idle' || state.phase === 'finished') setStartButtonLabel('start'); else setStartButtonLabel('resume');
     }
   } else {
     setStartButtonLabel('start');
@@ -105,9 +107,17 @@ export function updateSetInfo(currentSet, totalSets, phase) {
 }
 
 export function updateProgress(timeLeft, totalDuration) {
-  const progress = timeLeft / totalDuration;
-  const safe = Math.max(0, progress);
-  const dashoffset = CIRCUMFERENCE * (1 - safe);
+  // timeLeft may be in ms (preferred) or seconds
+  const denomMs = totalDuration * 1000;
+  const tlMs = timeLeft > 100 ? timeLeft : timeLeft * 1000;
+  let frac = tlMs / denomMs; // remaining fraction
+  // Clamp for perfect full start and empty end
+  const EPS_START = 200; // ms tolerance at phase start
+  const EPS_END = 40;    // ms tolerance at phase end
+  if (tlMs >= denomMs - EPS_START) frac = 1;
+  if (tlMs <= EPS_END) frac = 0;
+  frac = Math.max(0, Math.min(1, frac));
+  const dashoffset = CIRCUMFERENCE * (1 - frac);
   els.progressBar.style.strokeDashoffset = dashoffset;
 }
 
@@ -122,9 +132,15 @@ export function setPhase(phase) {
 }
 
 export function setStartButtonLabel(kind) {
-  // kind: 'start' | 'resume'
-  const label = kind === 'resume' ? i18n[currentLang].resume : i18n[currentLang].start;
+  // kind: 'start' | 'resume' | 'restart'
+  let label = i18n[currentLang].start;
+  if (kind === 'resume') label = i18n[currentLang].resume;
+  if (kind === 'restart') label = i18n[currentLang].restart || i18n[currentLang].start;
   els.startBtn.textContent = label;
+}
+
+export function setStartDisabled(disabled) {
+  els.startBtn.disabled = !!disabled;
 }
 
 export function vibrate(ms = 120) {

@@ -7,14 +7,15 @@ const Phase = Object.freeze({
 });
 
 class Timer {
-  constructor({ prep = 5, work = 20, rest = 10, totalSets = 8, onTick, onPhaseChange, onFinish }) {
+  constructor({ prep = 5, work = 20, rest = 10, totalSets = 8, onTick, onPhaseChange, onFinish, onBeat }) {
     this.config = { prep, work, rest };
     this.totalSets = totalSets;
     this.onTick = onTick || (() => {});
     this.onPhaseChange = onPhaseChange || (() => {});
     this.onFinish = onFinish || (() => {});
+    this.onBeat = onBeat || (() => {});
 
-    this._heartbeatMs = 250; // drift-tolerant kontrol frekansı
+    this._heartbeatMs = 200; // drift-tolerant kontrol frekansı (daha akıcı 1s geçişi)
     this.intervalId = null;
     this.phaseEndAt = null; // ms cinsinden bitiş zamanı
     this.reset(totalSets);
@@ -24,6 +25,7 @@ class Timer {
     return {
       phase: this.phase,
       timeLeft: this.timeLeft,
+      msLeft: Math.max(0, this.phaseEndAt ? (this.phaseEndAt - Date.now()) : this.timeLeft * 1000),
       currentSet: this.currentSet,
       totalSets: this.totalSets,
       isPaused: this.isPaused,
@@ -80,6 +82,8 @@ class Timer {
     if (![Phase.Prep, Phase.Work, Phase.Rest].includes(this.phase)) return;
     const now = Date.now();
     if (!this.phaseEndAt) this.phaseEndAt = now + Math.max(0, this.timeLeft) * 1000;
+    // Emit beat for smooth UI progress every heartbeat
+    this._emitBeat();
 
     const remaining = Math.ceil((this.phaseEndAt - now) / 1000);
     if (remaining !== this.timeLeft) {
@@ -108,6 +112,7 @@ class Timer {
       this.phaseEndAt = Date.now() + this.timeLeft * 1000;
       this._emitPhase();
       this._emitTick();
+      this._emitBeat();
     }
   }
 
@@ -126,6 +131,10 @@ class Timer {
 
   _emitPhase() {
     this.onPhaseChange(this.state);
+  }
+
+  _emitBeat() {
+    this.onBeat(this.state);
   }
 }
 
@@ -184,7 +193,7 @@ function playFinish() {
 
 
 
-const RADIUS = 140;
+const RADIUS = 125;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 const els = {
@@ -211,8 +220,9 @@ const i18n = {
     resume: 'Resume',
     pause: 'Pause',
     reset: 'Reset',
+    restart: 'Restart',
     setsLabel: 'Sets:',
-    heroTitle: 'Tabata Timer — HIIT Interval Timer',
+    heroTitle: 'Tabata Timer by ALPER K.',
     heroLead: 'Free, PWA-ready Tabata timer with circular progress, audio/vibration cues, bilingual UI (EN/TR), and offline support.',
     setInfoIdle: (total) => `Set 0 / ${total}`,
     setInfo: (current, total) => `Set ${current} / ${total}`,
@@ -225,8 +235,9 @@ const i18n = {
     resume: 'Devam',
     pause: 'Duraklat',
     reset: 'Sıfırla',
+    restart: 'Yeniden Başla',
     setsLabel: 'Set Sayısı:',
-    heroTitle: 'Tabata Zamanlayıcısı — HIIT Interval Zamanlayıcı',
+    heroTitle: 'Tabata Timer by ALPER K.',
     heroLead: 'Dairesel ilerleme, ses/titreşim uyarıları, iki dilli arayüz (TR/EN) ve çevrimdışı destek sunan ücretsiz, PWA tabanlı Tabata zamanlayıcı.',
     setInfoIdle: (total) => `Set 0 / ${total}`,
     setInfo: (current, total) => `Set ${current} / ${total}`,
@@ -254,7 +265,7 @@ function setLanguage(lang, state) {
   // Start button depends on state
   if (state) {
     if (state.isPaused) {
-      if (state.phase === 'idle') setStartButtonLabel('start'); else setStartButtonLabel('resume');
+      if (state.phase === 'idle' || state.phase === 'finished') setStartButtonLabel('start'); else setStartButtonLabel('resume');
     }
   } else {
     setStartButtonLabel('start');
@@ -291,9 +302,17 @@ function updateSetInfo(currentSet, totalSets, phase) {
 }
 
 function updateProgress(timeLeft, totalDuration) {
-  const progress = timeLeft / totalDuration;
-  const safe = Math.max(0, progress);
-  const dashoffset = CIRCUMFERENCE * (1 - safe);
+  // timeLeft may be in ms (preferred) or seconds
+  const denomMs = totalDuration * 1000;
+  const tlMs = timeLeft > 100 ? timeLeft : timeLeft * 1000;
+  let frac = tlMs / denomMs; // remaining fraction
+  // Clamp for perfect full start and empty end
+  const EPS_START = 200; // ms tolerance at phase start
+  const EPS_END = 40;    // ms tolerance at phase end
+  if (tlMs >= denomMs - EPS_START) frac = 1;
+  if (tlMs <= EPS_END) frac = 0;
+  frac = Math.max(0, Math.min(1, frac));
+  const dashoffset = CIRCUMFERENCE * (1 - frac);
   els.progressBar.style.strokeDashoffset = dashoffset;
 }
 
@@ -308,9 +327,15 @@ function setPhase(phase) {
 }
 
 function setStartButtonLabel(kind) {
-  // kind: 'start' | 'resume'
-  const label = kind === 'resume' ? i18n[currentLang].resume : i18n[currentLang].start;
+  // kind: 'start' | 'resume' | 'restart'
+  let label = i18n[currentLang].start;
+  if (kind === 'resume') label = i18n[currentLang].resume;
+  if (kind === 'restart') label = i18n[currentLang].restart || i18n[currentLang].start;
   els.startBtn.textContent = label;
+}
+
+function setStartDisabled(disabled) {
+  els.startBtn.disabled = !!disabled;
 }
 
 function vibrate(ms = 120) {
@@ -353,6 +378,18 @@ const timer = new Timer({
   work: WORK_TIME,
   rest: REST_TIME,
   totalSets,
+  onBeat: (state) => {
+    // Smooth ring sync each heartbeat using msLeft
+    let totalDuration = 1;
+    if (state.phase === Phase.Prep) totalDuration = PREP_TIME;
+    else if (state.phase === Phase.Work) totalDuration = WORK_TIME;
+    else if (state.phase === Phase.Rest) totalDuration = REST_TIME;
+    const ms = state.msLeft ?? (state.timeLeft * 1000);
+    updateProgress(ms, totalDuration);
+    // Numeric shows 1 during the last full second, 0 only at phase end
+    const disp = Math.max(0, Math.ceil(ms / 1000));
+    updateTimeLeft(disp);
+  },
   onTick: (state) => {
     updateTimeLeft(state.timeLeft);
     // duration for current phase
@@ -360,7 +397,8 @@ const timer = new Timer({
     if (state.phase === Phase.Prep) totalDuration = PREP_TIME;
     else if (state.phase === Phase.Work) totalDuration = WORK_TIME;
     else if (state.phase === Phase.Rest) totalDuration = REST_TIME;
-    updateProgress(state.timeLeft, totalDuration);
+    // Redundant safety update (in case beat missed)
+    updateProgress(state.msLeft ?? (state.timeLeft * 1000), totalDuration);
     updateSetInfo(state.currentSet, state.totalSets, state.phase);
 
     // Audio cues
@@ -387,20 +425,33 @@ const timer = new Timer({
     els.setInfo.textContent = finishedInfo(state.totalSets);
     updateProgress(0, 1);
     vibrate(200);
+    setStartButtonLabel('start');
+    setStartDisabled(false);
   }
 });
 
 // Event listeners
 els.startBtn.addEventListener('click', async () => {
   await setupAudio();
+  // If finished, reset then treat as fresh start
+  if (timer.state.phase === Phase.Finished) {
+    const v = parseInt(els.setsInput.value, 10) || 8;
+    timer.reset(v);
+    setPhase(Phase.Idle);
+    setStartButtonLabel('start');
+    initUI(v, WORK_TIME);
+  }
   const wasIdle = timer.state.phase === Phase.Idle;
   timer.start();
   if (!wasIdle) setStartButtonLabel('resume');
+  // Disable start until paused or finished
+  setStartDisabled(true);
 });
 
 els.pauseBtn.addEventListener('click', () => {
   timer.pause();
   setStartButtonLabel('resume');
+  setStartDisabled(false);
 });
 
 els.resetBtn.addEventListener('click', () => {
@@ -408,6 +459,7 @@ els.resetBtn.addEventListener('click', () => {
   timer.reset(totalSets);
   setPhase(Phase.Idle);
   setStartButtonLabel('start');
+  setStartDisabled(false);
   initUI(totalSets, WORK_TIME);
 });
 
@@ -418,6 +470,7 @@ els.setsInput.addEventListener('change', () => {
   timer.reset(totalSets);
   setPhase(Phase.Idle);
   setStartButtonLabel('start');
+  setStartDisabled(false);
   initUI(totalSets, WORK_TIME);
 });
 

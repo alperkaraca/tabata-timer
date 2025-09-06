@@ -112,6 +112,7 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  overflow: hidden; /* Clip progress ring to circle */
 }
 
 .timer-display svg {
@@ -124,13 +125,13 @@ body {
 .progress-bar-bg {
   fill: none;
   stroke: rgba(0, 0, 0, 0.08);
-  stroke-width: 15;
+  stroke-width: 12;
 }
 
 .progress-bar {
   fill: none;
   stroke: var(--primary-color);
-  stroke-width: 15;
+  stroke-width: 14;
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
 }
@@ -190,6 +191,14 @@ body {
   box-shadow:
     inset 4px 4px 8px var(--shadow-dark),
     inset -4px -4px 8px var(--shadow-light);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow:
+    inset 2px 2px 4px var(--shadow-dark),
+    inset -2px -2px 4px var(--shadow-light);
 }
 
 #startBtn { color: var(--primary-color); }
